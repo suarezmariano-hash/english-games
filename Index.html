@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>English Games – Canada School</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;}
+  button{cursor:pointer;font-family:inherit;border:none;outline:none;}
+  button:active{transform:scale(.96);}
+  input{font-family:inherit;outline:none;}
+
+  .screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow:hidden;}
+  .screen-home{background:linear-gradient(135deg,#1e3a5f 0%,#0369a1 50%,#38bdf8 100%);}
+  .screen-l1{background:linear-gradient(135deg,#1e3a5f 0%,#0369a1 50%,#38bdf8 100%);}
+  .screen-l2{background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 50%,#a78bfa 100%);}
+
+  .card{background:#fff;border-radius:28px;padding:22px;width:100%;max-width:480px;box-shadow:0 24px 64px #00000033;position:relative;z-index:1;}
+
+  .title{font-size:28px;font-weight:900;letter-spacing:.5px;}
+  .subtitle{font-size:14px;font-weight:700;margin:4px 0;}
+
+  .level-btn{width:100%;border-radius:20px;padding:18px 16px;cursor:pointer;font-family:inherit;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;border:2px solid transparent;}
+  .level-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px #0002;}
+
+  .mode-btn{display:flex;align-items:center;border-radius:16px;padding:13px 16px;cursor:pointer;font-size:15px;font-family:inherit;font-weight:600;transition:all .2s;width:100%;}
+
+  .back-btn{background:#f1f5f9;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;color:#555;font-weight:700;font-size:13px;}
+
+  .progress-bar{height:6px;background:#f1f5f9;border-radius:99px;margin-bottom:14px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:99px;transition:width .5s ease;}
+
+  .prompt-box{border-radius:20px;padding:18px 16px;text-align:center;border:2px solid;}
+  .prompt-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+  .prompt-verb{font-size:30px;font-weight:900;margin:6px 0 4px;}
+  .prompt-q{font-size:15px;font-weight:600;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .opt-btn{border-radius:14px;padding:13px 8px;font-size:14px;font-weight:700;transition:all .2s;border:2px solid #ddd;background:#fff;color:#333;}
+  .opt-btn:active{transform:scale(.95);}
+
+  .check-btn,.next-btn{display:block;width:100%;margin-top:14px;border:none;border-radius:14px;padding:13px;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s;}
+  .check-btn-l1{background:linear-gradient(90deg,#0369a1,#38bdf8);color:#fff;}
+  .check-btn-l2{background:linear-gradient(90deg,#7c3aed,#a78bfa);color:#fff;}
+  .next-btn{background:linear-gradient(90deg,#059669,#34d399);color:#fff;}
+  .spin-btn{background:linear-gradient(90deg,#dc2626,#f97316);color:#fff;font-size:18px;animation:pulseBtn 1.5s infinite;}
+
+  .text-input{display:block;width:100%;margin-top:14px;border:2px solid #a78bfa;border-radius:14px;padding:13px;font-size:18px;font-weight:700;text-align:center;transition:border-color .2s,background .2s;background:#fff;}
+
+  .match-row{display:flex;gap:10px;}
+  .match-col{flex:1;display:flex;flex-direction:column;gap:8px;}
+  .match-btn{border-radius:12px;padding:12px 8px;font-size:14px;font-weight:700;font-family:inherit;transition:all .2s;border:2px solid #ddd;background:#fff;}
+
+  .drag-card{flex:1;padding:18px 6px;border-radius:14px;text-align:center;font-weight:800;font-size:15px;cursor:grab;transition:all .2s;user-select:none;border:2px dashed #a78bfa;background:#f5f3ff;}
+
+  .score-pop{position:absolute;top:90px;right:24px;font-weight:900;font-size:22px;color:#16a34a;animation:popIn .4s ease;z-index:10;pointer-events:none;}
+  .combo-bar{text-align:center;color:#f59e0b;font-weight:800;font-size:13px;margin-bottom:8px;animation:popIn .3s ease;}
+
+  .result-stars{font-size:60px;margin-bottom:8px;animation:popIn .5s ease;}
+  .result-score-box{border-radius:20px;padding:18px 40px;margin-bottom:18px;display:inline-block;}
+
+  .badge{font-size:11px;border-radius:99px;padding:3px 10px;font-weight:800;display:inline-block;}
+
+  canvas{display:block;border-radius:50%;}
+
+  @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+  @keyframes pulseBtn{0%,100%{transform:scale(1);box-shadow:0 4px 20px #dc262655}50%{transform:scale(1.03);box-shadow:0 8px 32px #dc262688}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .anim-slide{animation:slideIn .4s ease;}
+  .anim-pop{animation:popIn .5s ease;}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const VOCAB = [
+  {word:"bedroom",img:"🛏️",hint:"You sleep here"},
+  {word:"bathroom",img:"🚿",hint:"You wash here"},
+  {word:"kitchen",img:"🍳",hint:"You cook here"},
+  {word:"living room",img:"🛋️",hint:"You watch TV here"},
+  {word:"garden",img:"🌳",hint:"Outside with plants"},
+  {word:"table",img:"🪑",hint:"You eat on this"},
+  {word:"chair",img:"💺",hint:"You sit on this"},
+  {word:"sofa",img:"🛋️",hint:"Comfy to sit on"},
+  {word:"bed",img:"🛏️",hint:"You sleep on this"},
+  {word:"lamp",img:"💡",hint:"It gives light"},
+  {word:"window",img:"🪟",hint:"You look outside"},
+  {word:"door",img:"🚪",hint:"You open this to enter"},
+  {word:"bookcase",img:"📚",hint:"Books live here"},
+  {word:"cupboard",img:"🗄️",hint:"Store things inside"},
+  {word:"picture",img:"🖼️",hint:"Hangs on the wall"},
+];
+
+const NUMBERS = [
+  {n:1,w:"one"},{n:2,w:"two"},{n:3,w:"three"},{n:4,w:"four"},{n:5,w:"five"},
+  {n:6,w:"six"},{n:7,w:"seven"},{n:8,w:"eight"},{n:9,w:"nine"},{n:10,w:"ten"},
+  {n:11,w:"eleven"},{n:12,w:"twelve"},{n:13,w:"thirteen"},{n:14,w:"fourteen"},{n:15,w:"fifteen"},
+  {n:16,w:"sixteen"},{n:17,w:"seventeen"},{n:18,w:"eighteen"},{n:19,w:"nineteen"},{n:20,w:"twenty"},
+];
+
+const PREPS = [
+  {prep:"on",      emoji:"📦⬆️",sentence:"The ball is ___ the box.",    answer:"on"},
+  {prep:"in",      emoji:"📦➡️",sentence:"The cat is ___ the box.",     answer:"in"},
+  {prep:"under",   emoji:"📦⬇️",sentence:"The dog is ___ the table.",  answer:"under"},
+  {prep:"next to", emoji:"📦↔️",sentence:"The chair is ___ the desk.", answer:"next to"},
+  {prep:"behind",  emoji:"🐱🟫",sentence:"The cat is ___ the sofa.",   answer:"behind"},
+  {prep:"in front of",emoji:"🐶🚪",sentence:"The dog is ___ the door.",answer:"in front of"},
+  {prep:"between", emoji:"📗📕📗",sentence:"The lamp is ___ the books.",answer:"between"},
+];
+
+const THERE = [
+  {sentence:"___ a sofa in the living room.",      answer:"There is", num:1},
+  {sentence:"___ two chairs in the kitchen.",      answer:"There are",num:2},
+  {sentence:"___ a lamp on the table.",            answer:"There is", num:1},
+  {sentence:"___ three books on the bookcase.",    answer:"There are",num:3},
+  {sentence:"___ a dog in the garden.",            answer:"There is", num:1},
+  {sentence:"___ four windows in the bedroom.",    answer:"There are",num:4},
+  {sentence:"___ a picture on the wall.",          answer:"There is", num:1},
+  {sentence:"___ five children in the classroom.", answer:"There are",num:5},
+];
+
+const VERBS = [
+  {inf:"be",ps:"was/were",pp:"been"},{inf:"become",ps:"became",pp:"become"},
+  {inf:"break",ps:"broke",pp:"broken"},{inf:"bring",ps:"brought",pp:"brought"},
+  {inf:"build",ps:"built",pp:"built"},{inf:"buy",ps:"bought",pp:"bought"},
+  {inf:"catch",ps:"caught",pp:"caught"},{inf:"choose",ps:"chose",pp:"chosen"},
+  {inf:"come",ps:"came",pp:"come"},{inf:"cost",ps:"cost",pp:"cost"},
+  {inf:"cut",ps:"cut",pp:"cut"},{inf:"do",ps:"did",pp:"done"},
+  {inf:"draw",ps:"drew",pp:"drawn"},{inf:"drink",ps:"drank",pp:"drunk"},
+  {inf:"drive",ps:"drove",pp:"driven"},{inf:"eat",ps:"ate",pp:"eaten"},
+  {inf:"fall",ps:"fell",pp:"fallen"},{inf:"feel",ps:"felt",pp:"felt"},
+  {inf:"find",ps:"found",pp:"found"},{inf:"fly",ps:"flew",pp:"flown"},
+  {inf:"forget",ps:"forgot",pp:"forgotten"},{inf:"get",ps:"got",pp:"got"},
+  {inf:"give",ps:"gave",pp:"given"},{inf:"go",ps:"went",pp:"gone"},
+  {inf:"grow",ps:"grew",pp:"grown"},{inf:"have",ps:"had",pp:"had"},
+  {inf:"hear",ps:"heard",pp:"heard"},{inf:"keep",ps:"kept",pp:"kept"},
+  {inf:"know",ps:"knew",pp:"known"},{inf:"leave",ps:"left",pp:"left"},
+  {inf:"lose",ps:"lost",pp:"lost"},{inf:"make",ps:"made",pp:"made"},
+  {inf:"meet",ps:"met",pp:"met"},{inf:"put",ps:"put",pp:"put"},
+  {inf:"read",ps:"read",pp:"read"},{inf:"ride",ps:"rode",pp:"ridden"},
+  {inf:"run",ps:"ran",pp:"run"},{inf:"say",ps:"said",pp:"said"},
+  {inf:"see",ps:"saw",pp:"seen"},{inf:"sell",ps:"sold",pp:"sold"},
+  {inf:"send",ps:"sent",pp:"sent"},{inf:"sing",ps:"sang",pp:"sung"},
+  {inf:"sit",ps:"sat",pp:"sat"},{inf:"sleep",ps:"slept",pp:"slept"},
+  {inf:"speak",ps:"spoke",pp:"spoken"},{inf:"spend",ps:"spent",pp:"spent"},
+  {inf:"stand",ps:"stood",pp:"stood"},{inf:"steal",ps:"stole",pp:"stolen"},
+  {inf:"swim",ps:"swam",pp:"swum"},{inf:"take",ps:"took",pp:"taken"},
+  {inf:"teach",ps:"taught",pp:"taught"},{inf:"tell",ps:"told",pp:"told"},
+  {inf:"think",ps:"thought",pp:"thought"},{inf:"throw",ps:"threw",pp:"thrown"},
+  {inf:"understand",ps:"understood",pp:"understood"},{inf:"wake",ps:"woke",pp:"woken"},
+  {inf:"wear",ps:"wore",pp:"worn"},{inf:"win",ps:"won",pp:"won"},
+  {inf:"write",ps:"wrote",pp:"written"},
+];
+
+const FL = {inf:"Infinitivo",ps:"Past Simple",pp:"Past Participle"};
+const COLS1 = ["#0369a1","#db2777","#ea580c","#ca8a04","#16a34a","#7c3aed","#0891b2","#be123c"];
+const COLS2 = ["#7c3aed","#db2777","#ea580c","#ca8a04","#16a34a","#0891b2","#4f46e5","#be123c"];
+
+const L1_MODES = [
+  {id:"vocab",   emoji:"🏠",label:"Vocabulario",    desc:"Rooms & furniture"},
+  {id:"numbers", emoji:"🔢",label:"Números",         desc:"Numbers 1–20"},
+  {id:"thereis", emoji:"📝",label:"There is / are",  desc:"Completa oraciones"},
+  {id:"preps",   emoji:"📦",label:"Preposiciones",   desc:"On, in, under..."},
+  {id:"howmany", emoji:"🔢",label:"How many?",       desc:"Cuenta y escribe"},
+  {id:"roulette",emoji:"🎡",label:"Ruleta",          desc:"¡Gira y responde!"},
+];
+const L2_MODES = [
+  {id:"mcq",     emoji:"🔤",label:"Elige la respuesta",desc:"4 opciones"},
+  {id:"fill",    emoji:"✏️",label:"Escribe el verbo",  desc:"Escribe tú mismo"},
+  {id:"match",   emoji:"🔗",label:"Une los pares",      desc:"Conecta columnas"},
+  {id:"order",   emoji:"🃏",label:"Ordena las cartas",  desc:"Inf → PS → PP"},
+  {id:"roulette",emoji:"🎡",label:"Ruleta de verbos",   desc:"¡Gira y responde!"},
+];
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function shuffle(arr){return[...arr].sort(()=>Math.random()-.5);}
+function pick(arr,n){return shuffle(arr).slice(0,n);}
+function norm(s){return s.trim().toLowerCase().replace(/\s+/g," ");}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let S = {
+  screen:"home",  // home | levelSelect | game | result
+  level:null,
+  mode:null,
+  score:0,
+  round:0,
+  combo:0,
+  totalRounds:8,
+  q:null,         // current question data
+  phase:null,     // for roulette: spin|answer|result
+  selected:null,
+  revealed:false,
+  inputVal:"",
+  matchState:null,
+  orderState:null,
+  roulAngle:0,
+  roulPool:null,
+  roulAskField:null,
+};
+
+function setState(patch){
+  Object.assign(S,patch);
+  render();
+}
+
+// ═══════════════════════════════════════════
+// QUESTION GENERATORS
+// ═══════════════════════════════════════════
+function genQuestion(level, modeId){
+  if(level===1){
+    if(modeId==="vocab"){
+      const item = rand(VOCAB);
+      const opts = shuffle([item.word,...pick(VOCAB.filter(v=>v.word!==item.word),3).map(v=>v.word)]);
+      return {type:"vocab",item,opts};
+    }
+    if(modeId==="numbers"){
+      const item = rand(NUMBERS);
+      const opts = shuffle([item.w,...pick(NUMBERS.filter(n=>n.n!==item.n),3).map(n=>n.w)]);
+      return {type:"numbers",item,opts};
+    }
+    if(modeId==="thereis"){
+      return {type:"thereis",item:rand(THERE)};
+    }
+    if(modeId==="preps"){
+      const item = rand(PREPS);
+      const opts = shuffle([item.answer,...pick(PREPS.filter(p=>p.answer!==item.answer),3).map(p=>p.answer)]);
+      return {type:"preps",item,opts};
+    }
+    if(modeId==="howmany"){
+      const things=["🍎","⭐","🐱","🌸","📚","🎈","🍕","🦋"];
+      const emoji=rand(things), count=1+Math.floor(Math.random()*9);
+      const wrong=new Set();
+      while(wrong.size<3){const r=1+Math.floor(Math.random()*9);if(r!==count)wrong.add(r);}
+      const opts=shuffle([count,...wrong]).map(n=>({n,w:NUMBERS.find(x=>x.n===n)?.w||String(n)}));
+      return {type:"howmany",emoji,count,opts,answer:NUMBERS.find(x=>x.n===count)?.w};
+    }
+    if(modeId==="roulette"){
+      const pool=shuffle(VOCAB).slice(0,8);
+      return {type:"roulette1",pool,phase:"spin",landed:null,roulOpts:null};
+    }
+  } else {
+    const fields=["ps","pp","inf"];
+    if(modeId==="mcq"){
+      const verb=rand(VERBS), ask=rand(fields);
+      const give=rand(fields.filter(f=>f!==ask));
+      const correct=verb[ask];
+      const opts=shuffle([correct,...pick(VERBS.filter(v=>v[ask]!==correct),3).map(v=>v[ask])]);
+      return {type:"mcq",verb,ask,give,correct,opts};
+    }
+    if(modeId==="fill"){
+      const verb=rand(VERBS), ask=rand(fields);
+      const give=rand(fields.filter(f=>f!==ask));
+      return {type:"fill",verb,ask,give,answer:verb[ask]};
+    }
+    if(modeId==="match"){
+      const set=shuffle(VERBS).slice(0,5);
+      const left=set.map(v=>({id:v.inf,text:v.inf,ref:v}));
+      const right=shuffle(set.map(v=>({id:v.ps,text:v.ps,ref:v})));
+      return {type:"match",left,right,matched:{},selLeft:null,wrong:null,done:false};
+    }
+    if(modeId==="order"){
+      const verb=rand(VERBS);
+      const cards=shuffle([{label:verb.inf,field:"inf"},{label:verb.ps,field:"ps"},{label:verb.pp,field:"pp"}]);
+      return {type:"order",verb,cards,checked:false,correct:false,dragging:null};
+    }
+    if(modeId==="roulette"){
+      const pool=shuffle(VERBS).slice(0,8);
+      const ask=rand(["ps","pp"]);
+      return {type:"roulette2",pool,ask,phase:"spin",landed:null};
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════
+let popTimeout=null;
+let popEl=null;
+
+function addScore(pts){
+  const bonus=S.combo>=3?Math.round(pts*.5):0;
+  const total=pts+bonus;
+  const newScore=S.score+total;
+  const newCombo=S.combo+1;
+  S.score=newScore; S.combo=newCombo;
+  render();
+  showPop(`+${total}${bonus>0?` 🔥x${S.combo-1}`:""}`);
+}
+
+function showPop(txt){
+  if(popEl){popEl.remove();popEl=null;}
+  if(popTimeout){clearTimeout(popTimeout);}
+  popEl=document.createElement("div");
+  popEl.className="score-pop";
+  popEl.textContent=txt;
+  document.getElementById("app").appendChild(popEl);
+  popTimeout=setTimeout(()=>{if(popEl){popEl.remove();popEl=null;}},1200);
+}
+
+function nextRound(){
+  if(S.round+1>=S.totalRounds){ setState({screen:"result"}); return; }
+  const q=genQuestion(S.level,S.mode.id);
+  setState({round:S.round+1,q,selected:null,revealed:false,inputVal:"",phase:"spin"});
+}
+
+// ═══════════════════════════════════════════
+// ROULETTE DRAW
+// ═══════════════════════════════════════════
+let roulRAF=null;
+
+function drawRoulette(canvasId, pool, cols, angle, highlight=null, labelFn=null){
+  const c=document.getElementById(canvasId); if(!c)return;
+  const ctx=c.getContext("2d"), cx=c.width/2, cy=c.height/2, r=cx-8, seg=(2*Math.PI)/8;
+  ctx.clearRect(0,0,c.width,c.height);
+  pool.forEach((item,i)=>{
+    const st=angle+i*seg, en=st+seg, hit=highlight===i;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,st,en); ctx.closePath();
+    ctx.fillStyle=hit?"#fef08a":cols[i]; ctx.fill();
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.stroke();
+    const label=labelFn?labelFn(item):(item.word||item.inf);
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(st+seg/2); ctx.textAlign="right";
+    ctx.fillStyle=hit?"#7c3aed":"#fff"; ctx.font="bold 12px Segoe UI,sans-serif";
+    const display=(item.img?item.img+" ":"")+label;
+    ctx.fillText(display.length>12?display.slice(0,12)+"…":display, r-8, 5);
+    ctx.restore();
+  });
+  // hub
+  ctx.beginPath(); ctx.arc(cx,cy,22,0,2*Math.PI);
+  ctx.fillStyle="#fff"; ctx.shadowColor="#0004"; ctx.shadowBlur=8; ctx.fill();
+  ctx.strokeStyle=cols[0]; ctx.lineWidth=2.5; ctx.stroke(); ctx.shadowBlur=0;
+  ctx.fillStyle=cols[0]; ctx.font="bold 15px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText("★",cx,cy);
+  // pointer
+  ctx.beginPath(); ctx.moveTo(cx-13,2); ctx.lineTo(cx+13,2); ctx.lineTo(cx,30); ctx.closePath();
+  ctx.fillStyle="#dc2626"; ctx.shadowColor="#dc262699"; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+}
+
+function spinRoulette(canvasId, pool, cols, labelFn, onLand){
+  if(roulRAF){cancelAnimationFrame(roulRAF);}
+  const ti=Math.floor(Math.random()*8), seg=(2*Math.PI)/8;
+  const base=-Math.PI/2-ti*seg-seg/2;
+  const start=S.roulAngle;
+  const delta=((base-start)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+  const total=(5+Math.random()*5)*2*Math.PI+delta;
+  const dur=3500+Math.random()*1000, t0=performance.now();
+  function ease(t){return 1-Math.pow(1-t,4);}
+  function frame(now){
+    const t=Math.min((now-t0)/dur,1), cur=start+ease(t)*total;
+    S.roulAngle=cur;
+    drawRoulette(canvasId,pool,cols,cur,t===1?ti:null,labelFn);
+    if(t<1){roulRAF=requestAnimationFrame(frame);}
+    else{roulRAF=null; onLand(ti);}
+  }
+  roulRAF=requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════════
+function el(tag,props={},children=[]){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(props)){
+    if(k==="style"&&typeof v==="object"){Object.assign(e.style,v);}
+    else if(k==="className"){e.className=v;}
+    else if(k.startsWith("on")&&typeof v==="function"){e.addEventListener(k.slice(2).toLowerCase(),v);}
+    else{e[k]=v;}
+  }
+  children.forEach(c=>{if(c!=null){e.appendChild(typeof c==="string"?document.createTextNode(c):c);}});
+  return e;
+}
+function div(props={},children=[]){return el("div",props,children);}
+function btn(props={},children=[]){return el("button",props,children);}
+function p(props={},children=[]){return el("p",props,children);}
+function span(props={},children=[]){return el("span",props,children);}
+function inp(props={}){return el("input",props);}
+function canvas(props={}){return el("canvas",props);}
+
+// ═══════════════════════════════════════════
+// GAME RENDERS
+// ═══════════════════════════════════════════
+
+function renderVocab(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#eff6ff,#dbeafe)",borderColor:"#93c5fd"}});
+  pb.appendChild(div({style:{fontSize:"56px",marginBottom:"6px",textAlign:"center"}},[ q.item.img ]));
+  pb.appendChild(p({style:{color:"#3b82f6",fontWeight:"700",fontSize:"13px",textAlign:"center"}},[`"${q.item.hint}"`]));
+  pb.appendChild(p({style:{color:"#1e40af",fontWeight:"600",fontSize:"15px",textAlign:"center",marginTop:"6px"}},["What is this room / object?"]));
+  box.appendChild(pb);
+  const grid=div({className:"grid2"});
+  q.opts.forEach(o=>{
+    const b=btn({className:"opt-btn"},[ o ]);
+    if(q.revealed){
+      if(o===q.item.word){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o===q.selected){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selected=o; q.revealed=true;
+      if(o===q.item.word) addScore(10);
+      render();
+    });
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  if(q.revealed){const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);}
+  return box;
+}
+
+function renderNumbers(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#eff6ff,#dbeafe)",borderColor:"#93c5fd"}});
+  pb.appendChild(div({style:{fontSize:"64px",fontWeight:"900",color:"#0369a1",textAlign:"center",lineHeight:"1"}},[ String(q.item.n) ]));
+  pb.appendChild(p({style:{color:"#1e40af",fontWeight:"600",fontSize:"15px",textAlign:"center",marginTop:"10px"}},["How do you write this number?"]));
+  box.appendChild(pb);
+  const grid=div({className:"grid2"});
+  q.opts.forEach(o=>{
+    const b=btn({className:"opt-btn"},[ o ]);
+    if(q.revealed){
+      if(o===q.item.w){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o===q.selected){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selected=o; q.revealed=true;
+      if(o===q.item.w) addScore(10);
+      render();
+    });
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  if(q.revealed){const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);}
+  return box;
+}
+
+function renderThereis(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#eff6ff,#dbeafe)",borderColor:"#93c5fd"}});
+  pb.appendChild(p({style:{color:"#3b82f6",fontWeight:"700",fontSize:"13px",textAlign:"center"}},["Complete the sentence:"]));
+  pb.appendChild(p({style:{color:"#1e40af",fontWeight:"700",fontSize:"17px",textAlign:"center",margin:"10px 0"}},[q.item.sentence.replace("___","______")]));
+  pb.appendChild(div({style:{fontSize:"28px",textAlign:"center"}},["🏠".repeat(Math.min(q.item.num,5))]));
+  box.appendChild(pb);
+  const row=div({style:{display:"flex",gap:"12px",marginTop:"16px"}});
+  ["There is","There are"].forEach(o=>{
+    const b=btn({className:"opt-btn",style:{flex:"1",fontSize:"16px",padding:"16px 8px"}},[ o ]);
+    if(q.revealed){
+      if(o===q.item.answer){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o===q.selected){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selected=o; q.revealed=true;
+      if(o===q.item.answer) addScore(10);
+      render();
+    });
+    row.appendChild(b);
+  });
+  box.appendChild(row);
+  if(q.revealed){
+    const msg=p({style:{textAlign:"center",fontWeight:"700",fontSize:"18px",marginTop:"10px",color:q.selected===q.item.answer?"#16a34a":"#dc2626"}},
+      [q.selected===q.item.answer?"¡Correcto! 🎉":`Era: "${q.item.answer}"`]);
+    box.appendChild(msg);
+    const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);
+  }
+  return box;
+}
+
+function renderPreps(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#eff6ff,#dbeafe)",borderColor:"#93c5fd"}});
+  pb.appendChild(div({style:{fontSize:"44px",textAlign:"center",marginBottom:"6px"}},[q.item.emoji]));
+  pb.appendChild(p({style:{color:"#1e40af",fontWeight:"700",fontSize:"16px",textAlign:"center"}},[q.item.sentence.replace("___","______")]));
+  pb.appendChild(p({style:{color:"#3b82f6",fontSize:"13px",textAlign:"center",marginTop:"4px"}},["Choose the correct preposition"]));
+  box.appendChild(pb);
+  const grid=div({className:"grid2"});
+  q.opts.forEach(o=>{
+    const b=btn({className:"opt-btn"},[ o ]);
+    if(q.revealed){
+      if(o===q.item.answer){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o===q.selected){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selected=o; q.revealed=true;
+      if(o===q.item.answer) addScore(10);
+      render();
+    });
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  if(q.revealed){const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);}
+  return box;
+}
+
+function renderHowmany(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#eff6ff,#dbeafe)",borderColor:"#93c5fd"}});
+  pb.appendChild(p({style:{color:"#3b82f6",fontWeight:"700",fontSize:"13px",textAlign:"center"}},["How many? 🔢"]));
+  pb.appendChild(div({style:{fontSize:q.count>6?"28px":"36px",lineHeight:"1.4",margin:"8px 0",textAlign:"center",letterSpacing:"2px"}},[q.emoji.repeat(q.count)]));
+  pb.appendChild(p({style:{color:"#1e40af",fontWeight:"600",fontSize:"14px",textAlign:"center"}},["Write the number in words:"]));
+  box.appendChild(pb);
+  const grid=div({className:"grid2"});
+  q.opts.forEach(o=>{
+    const b=btn({className:"opt-btn"},[ o.w ]);
+    if(q.revealed){
+      if(o.n===q.count){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o.n===q.selectedN){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selectedN=o.n; q.revealed=true;
+      if(o.n===q.count) addScore(10);
+      render();
+    });
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  if(q.revealed){const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);}
+  return box;
+}
+
+function renderRouletteL1(q){
+  const box=div({className:"anim-slide"});
+  const cw=div({style:{display:"flex",justifyContent:"center",marginBottom:"10px"}});
+  const cv=el("canvas",{id:"roulette-canvas",width:260,height:260,style:{borderRadius:"50%",filter:"drop-shadow(0 8px 24px #0369a144)"}});
+  cw.appendChild(cv); box.appendChild(cw);
+
+  setTimeout(()=>{
+    drawRoulette("roulette-canvas",q.pool,COLS1,S.roulAngle,null,item=>item.word);
+  },0);
+
+  if(q.phase==="spin"){
+    const info=p({style:{color:"#0369a1",fontWeight:"700",fontSize:"14px",textAlign:"center",marginBottom:"10px"}},
+      [q.spinning?"🌀 Girando...":"¡Gira para obtener tu palabra!"]);
+    box.appendChild(info);
+    const sb=btn({className:"check-btn check-btn-l1 spin-btn"},["🎡 ¡GIRAR!"]);
+    if(q.spinning) sb.style.background="linear-gradient(90deg,#93c5fd,#bfdbfe)";
+    sb.addEventListener("click",()=>{
+      if(q.spinning) return;
+      q.spinning=true; render();
+      spinRoulette("roulette-canvas",q.pool,COLS1,item=>item.word,(ti)=>{
+        q.spinning=false; q.landed=ti;
+        const ans=q.pool[ti].word;
+        q.roulOpts=shuffle([ans,...pick(VOCAB.filter(v=>v.word!==ans),3).map(v=>v.word)]);
+        q.phase="answer";
+        render();
+      });
+    });
+    box.appendChild(sb);
+  }
+
+  if(q.phase==="answer"&&q.landed!==null){
+    const lv=q.pool[q.landed];
+    const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#fffbeb,#fef3c7)",borderColor:"#f59e0b",marginBottom:"12px"}});
+    pb.appendChild(div({style:{fontSize:"48px",textAlign:"center"}},[lv.img]));
+    pb.appendChild(p({style:{color:"#92400e",fontWeight:"700",fontSize:"15px",textAlign:"center",marginTop:"6px"}},["What word is this?"]));
+    box.appendChild(pb);
+    const grid=div({className:"grid2"});
+    q.roulOpts.forEach(o=>{
+      const b=btn({className:"opt-btn"},[ o ]);
+      if(q.roulRevealed){
+        if(o===lv.word){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+        else if(o===q.roulSel){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+      }
+      if(!q.roulRevealed) b.addEventListener("click",()=>{
+        q.roulSel=o; q.roulRevealed=true;
+        if(o===lv.word) addScore(15);
+        render();
+      });
+      grid.appendChild(b);
+    });
+    box.appendChild(grid);
+    if(q.roulRevealed){
+      const nb=btn({className:"next-btn"},["Siguiente ➜"]);
+      nb.addEventListener("click",()=>{q.phase="spin";q.landed=null;q.roulOpts=null;q.roulSel=null;q.roulRevealed=false;q.spinning=false;nextRound();});
+      box.appendChild(nb);
+    }
+  }
+  return box;
+}
+
+function renderMCQ(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#f5f3ff,#ede9fe)",borderColor:"#ddd6fe"}});
+  pb.appendChild(p({style:{color:"#a78bfa",fontWeight:"700",fontSize:"12px",textAlign:"center",textTransform:"uppercase",letterSpacing:"1px"}},[FL[q.give]]));
+  pb.appendChild(p({style:{color:"#4c1d95",fontWeight:"900",fontSize:"28px",textAlign:"center",margin:"6px 0"}},[q.verb[q.give]]));
+  pb.appendChild(p({style:{color:"#7c3aed",fontWeight:"600",fontSize:"15px",textAlign:"center"}},[`¿Cuál es el `,el("strong",{},[FL[q.ask]]),`?`]));
+  box.appendChild(pb);
+  const grid=div({className:"grid2"});
+  q.opts.forEach(o=>{
+    const b=btn({className:"opt-btn"},[ o ]);
+    if(q.revealed){
+      if(o===q.correct){b.style.background="#4ade80";b.style.borderColor="#16a34a";b.style.color="#fff";}
+      else if(o===q.selected){b.style.background="#f87171";b.style.borderColor="#dc2626";b.style.color="#fff";}
+    }
+    if(!q.revealed) b.addEventListener("click",()=>{
+      q.selected=o; q.revealed=true;
+      if(o===q.correct) addScore(10);
+      render();
+    });
+    grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  if(q.revealed){const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);}
+  return box;
+}
+
+function renderFill(q){
+  const box=div({className:"anim-slide"});
+  const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#f5f3ff,#ede9fe)",borderColor:"#ddd6fe"}});
+  pb.appendChild(p({style:{color:"#a78bfa",fontWeight:"700",fontSize:"12px",textAlign:"center",textTransform:"uppercase",letterSpacing:"1px"}},[FL[q.give]]));
+  pb.appendChild(p({style:{color:"#4c1d95",fontWeight:"900",fontSize:"28px",textAlign:"center",margin:"6px 0"}},[q.verb[q.give]]));
+  pb.appendChild(p({style:{color:"#7c3aed",fontWeight:"600",fontSize:"15px",textAlign:"center"}},[`Escribe el `,el("strong",{},[FL[q.ask]])]));
+  box.appendChild(pb);
+  const input=inp({className:"text-input",placeholder:"Escribe aquí...",value:q.inputVal||""});
+  if(q.fillResult!==undefined){
+    input.style.borderColor=q.fillResult?"#16a34a":"#dc2626";
+    input.style.background=q.fillResult?"#f0fdf4":"#fff1f2";
+    input.disabled=true;
+  }
+  input.addEventListener("input",e=>{q.inputVal=e.target.value;});
+  input.addEventListener("keydown",e=>{if(e.key==="Enter"&&q.fillResult===undefined)checkFill(q,input);});
+  box.appendChild(input);
+  if(q.fillResult===undefined){
+    const cb=btn({className:"check-btn check-btn-l2"},["Verificar ✓"]);
+    cb.addEventListener("click",()=>checkFill(q,input));
+    box.appendChild(cb);
+  } else {
+    const msg=p({style:{textAlign:"center",fontSize:"20px",fontWeight:"700",marginTop:"10px",color:q.fillResult?"#16a34a":"#dc2626"}},
+      [q.fillResult?"¡Correcto! 🎉":`Incorrecto 😕 — Era: "${q.answer}"`]);
+    box.appendChild(msg);
+    const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);
+  }
+  setTimeout(()=>{ const i=document.querySelector(".text-input"); if(i&&!q.fillResult)i.focus(); },50);
+  return box;
+}
+
+function checkFill(q,input){
+  const val=q.inputVal||"";
+  const ok=norm(val)===norm(q.answer)||(q.answer.includes("/")&&q.answer.split("/").some(a=>norm(val)===norm(a)));
+  q.fillResult=ok;
+  if(ok) addScore(q.type==="roulette2"?20:15);
+  render();
+}
+
+function renderMatch(q){
+  const box=div({className:"anim-slide"});
+  box.appendChild(p({style:{textAlign:"center",fontWeight:"700",color:"#7c3aed",marginBottom:"12px"}},["Une el Infinitivo con su Past Simple"]));
+  const row=div({className:"match-row"});
+  const lc=div({className:"match-col"}), rc=div({className:"match-col"});
+  q.left.forEach(item=>{
+    const b=btn({className:"match-btn"},[ item.text ]);
+    b.style.background=q.matched[item.id]?"#4ade80":q.selLeft?.id===item.id?"#a78bfa":"#f3f0ff";
+    b.style.borderColor=q.matched[item.id]?"#16a34a":q.selLeft?.id===item.id?"#7c3aed":"#ddd6fe";
+    b.style.color=q.matched[item.id]||q.selLeft?.id===item.id?"#fff":"#4c1d95";
+    b.addEventListener("click",()=>{
+      if(q.matched[item.id])return;
+      q.selLeft=item; q.wrong=null; render();
+    });
+    lc.appendChild(b);
+  });
+  q.right.forEach(item=>{
+    const b=btn({className:"match-btn"},[ item.text ]);
+    b.style.background=q.matched[item.id]?"#4ade80":q.wrong===item.id?"#f87171":"#fff7ed";
+    b.style.borderColor=q.matched[item.id]?"#16a34a":q.wrong===item.id?"#dc2626":"#fed7aa";
+    b.style.color=q.matched[item.id]?"#fff":q.wrong===item.id?"#fff":"#92400e";
+    b.addEventListener("click",()=>{
+      if(!q.selLeft||q.matched[item.id])return;
+      if(q.selLeft.ref===item.ref){
+        q.matched[q.selLeft.id]=true; q.matched[item.id]=true;
+        q.selLeft=null; q.wrong=null;
+        addScore(8);
+        if(Object.keys(q.matched).length===q.left.length*2){ q.matchDone=true; }
+        render();
+      } else {
+        q.wrong=item.id; render();
+        setTimeout(()=>{q.wrong=null;q.selLeft=null;render();},700);
+      }
+    });
+    rc.appendChild(b);
+  });
+  row.appendChild(lc); row.appendChild(rc); box.appendChild(row);
+  if(q.matchDone){
+    box.appendChild(p({style:{textAlign:"center",fontWeight:"800",color:"#16a34a",fontSize:"18px",marginTop:"12px"}},["¡Todos unidos! 🏆"]));
+    const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);
+  }
+  return box;
+}
+
+function renderOrder(q){
+  const box=div({className:"anim-slide"});
+  box.appendChild(p({style:{textAlign:"center",fontWeight:"700",color:"#7c3aed",marginBottom:"4px"}},["Arrastra en el orden correcto:"]));
+  box.appendChild(p({style:{textAlign:"center",color:"#555",fontSize:"13px",marginBottom:"14px"}},["Infinitivo → Past Simple → Past Participle"]));
+  const co=["inf","ps","pp"];
+  const FC={inf:"#7c3aed",ps:"#0369a1",pp:"#b45309"};
+  const row=div({style:{display:"flex",gap:"10px",justifyContent:"center",marginBottom:"14px"}});
+  q.cards.forEach((card,idx)=>{
+    const d=div({draggable:true},[ card.label ]);
+    d.className="drag-card";
+    d.style.color=FC[card.field];
+    if(q.checked){
+      d.style.background=card.field===co[idx]?"#dcfce7":"#fee2e2";
+      d.style.borderStyle="solid";
+      d.style.borderColor=card.field===co[idx]?"#16a34a":"#dc2626";
+    }
+    d.addEventListener("dragstart",()=>{q.dragging=idx;});
+    d.addEventListener("dragover",e=>e.preventDefault());
+    d.addEventListener("drop",()=>{
+      if(q.dragging===null||q.dragging===idx)return;
+      const n=[...q.cards];[n[q.dragging],n[idx]]=[n[idx],n[q.dragging]];
+      q.cards=n; q.dragging=null; render();
+    });
+    // touch support
+    d.addEventListener("touchstart",e=>{q.dragging=idx;e.preventDefault();},{passive:false});
+    row.appendChild(d);
+  });
+  box.appendChild(row);
+  if(q.checked){
+    const labels=co.map(f=>`${FL[f]}: ${q.verb[f]}`).join("  •  ");
+    box.appendChild(p({style:{textAlign:"center",color:"#555",fontSize:"12px",marginBottom:"8px"}},[labels]));
+    box.appendChild(p({style:{textAlign:"center",fontWeight:"800",fontSize:"19px",color:q.orderCorrect?"#16a34a":"#dc2626",marginBottom:"8px"}},[q.orderCorrect?"¡Orden perfecto! 🌟":"¡Revisa el orden! 🤔"]));
+    const nb=btn({className:"next-btn"},["Siguiente ➜"]);nb.addEventListener("click",nextRound);box.appendChild(nb);
+  } else {
+    const cb=btn({className:"check-btn check-btn-l2"},["Verificar orden ✓"]);
+    cb.addEventListener("click",()=>{
+      const ok=q.cards.every((c,i)=>c.field===co[i]);
+      q.checked=true; q.orderCorrect=ok;
+      if(ok) addScore(12);
+      render();
+    });
+    box.appendChild(cb);
+  }
+  return box;
+}
+
+function renderRouletteL2(q){
+  const box=div({className:"anim-slide"});
+  const cw=div({style:{display:"flex",justifyContent:"center",marginBottom:"10px"}});
+  const cv=el("canvas",{id:"roulette-canvas",width:260,height:260,style:{borderRadius:"50%",filter:"drop-shadow(0 8px 24px #7c3aed44)"}});
+  cw.appendChild(cv); box.appendChild(cw);
+  setTimeout(()=>{ drawRoulette("roulette-canvas",q.pool,COLS2,S.roulAngle,null,item=>item.inf); },0);
+
+  if(q.phase==="spin"){
+    box.appendChild(p({style:{color:"#7c3aed",fontWeight:"700",fontSize:"14px",textAlign:"center",marginBottom:"10px"}},[q.spinning?"🌀 Girando...":"¡Gira la ruleta!"]));
+    const sb=btn({className:"check-btn check-btn-l2 spin-btn"},["🎡 ¡GIRAR!"]);
+    if(q.spinning) sb.style.background="linear-gradient(90deg,#c4b5fd,#ddd6fe)";
+    sb.addEventListener("click",()=>{
+      if(q.spinning)return;
+      q.spinning=true; render();
+      spinRoulette("roulette-canvas",q.pool,COLS2,item=>item.inf,(ti)=>{
+        q.spinning=false; q.landed=ti; q.phase="answer"; render();
+      });
+    });
+    box.appendChild(sb);
+  }
+
+  if(q.phase==="answer"&&q.landed!==null){
+    const lv=q.pool[q.landed];
+    const pb=div({className:"prompt-box",style:{background:"linear-gradient(135deg,#fffbeb,#fef3c7)",borderColor:"#f59e0b",marginBottom:"12px"}});
+    pb.appendChild(p({style:{color:"#b45309",fontWeight:"700",fontSize:"12px",textAlign:"center",textTransform:"uppercase"}},"🎯 Cayó en:"));
+    pb.appendChild(p({style:{color:"#92400e",fontWeight:"900",fontSize:"26px",textAlign:"center",margin:"4px 0"}},[lv.inf]));
+    pb.appendChild(p({style:{color:"#7c3aed",fontSize:"15px",textAlign:"center"}},[`Escribe el `,el("strong",{},[FL[q.ask]])]));
+    box.appendChild(pb);
+    const input=inp({className:"text-input",placeholder:"Escribe aquí...",style:{borderColor:"#f59e0b"},value:q.inputVal||""});
+    input.addEventListener("input",e=>{q.inputVal=e.target.value;});
+    input.addEventListener("keydown",e=>{if(e.key==="Enter")checkRouletteL2(q);});
+    box.appendChild(input);
+    const rb=btn({className:"check-btn",style:{background:"linear-gradient(90deg,#dc2626,#f97316)",color:"#fff"}},["¡Responder! 🎯"]);
+    rb.addEventListener("click",()=>checkRouletteL2(q));
+    box.appendChild(rb);
+    setTimeout(()=>{ const i=document.querySelector(".text-input"); if(i)i.focus(); },50);
+  }
+
+  if(q.phase==="result"&&q.landed!==null){
+    const lv=q.pool[q.landed];
+    box.appendChild(div({style:{fontSize:"52px",textAlign:"center",marginBottom:"8px"},className:"anim-pop"},[q.roulOk?"🎉":"😅"]));
+    box.appendChild(p({style:{fontSize:"20px",fontWeight:"800",textAlign:"center",marginBottom:"8px",color:q.roulOk?"#16a34a":"#dc2626"}},[q.roulOk?"¡Perfecto! +20 pts 🏆":`Era: "${lv[q.ask]}"`]));
+    const vb=div({style:{background:"#f5f3ff",borderRadius:"14px",padding:"10px 16px",marginBottom:"14px",textAlign:"center"}});
+    vb.innerHTML=`<strong style="color:#7c3aed">${lv.inf}</strong> <span style="color:#888">→</span> <strong style="color:#0369a1">${lv.ps}</strong> <span style="color:#888">→</span> <strong style="color:#b45309">${lv.pp}</strong>`;
+    box.appendChild(vb);
+    const nb=btn({className:"next-btn"},["Siguiente ➜"]);
+    nb.addEventListener("click",()=>{q.phase="spin";q.landed=null;q.inputVal="";q.roulOk=null;q.spinning=false;nextRound();});
+    box.appendChild(nb);
+  }
+  return box;
+}
+
+function checkRouletteL2(q){
+  const lv=q.pool[q.landed];
+  const ans=lv[q.ask], val=q.inputVal||"";
+  const ok=norm(val)===norm(ans)||(ans.includes("/")&&ans.split("/").some(a=>norm(val)===norm(a)));
+  q.roulOk=ok; q.phase="result";
+  if(ok) addScore(20);
+  render();
+}
+
+// ═══════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════
+function renderHome(){
+  const sc=div({className:"screen screen-home"});
+  const card=div({className:"card"});
+
+  // Header
+  const hdr=div({style:{textAlign:"center",marginBottom:"26px"}});
+  hdr.appendChild(div({style:{fontSize:"52px",marginBottom:"8px"}},["🏫✨"]));
+  hdr.appendChild(p({style:{fontWeight:"900",fontSize:"26px",color:"#0369a1",marginBottom:"4px"}},["English Games"]));
+  hdr.appendChild(p({style:{fontWeight:"700",fontSize:"14px",color:"#7c3aed",marginBottom:"2px"}},["Canada School"]));
+  hdr.appendChild(p({style:{color:"#888",fontSize:"13px"}},["¡Practica y aprende inglés!"]));
+  card.appendChild(hdr);
+
+  card.appendChild(p({style:{fontWeight:"800",color:"#374151",marginBottom:"14px",fontSize:"15px",textAlign:"center"}},["¿Qué nivel sos?"]));
+
+  // Level 1
+  const l1=btn({className:"level-btn",style:{background:"linear-gradient(135deg,#dbeafe,#bfdbfe)",border:"2px solid #93c5fd",marginBottom:"14px"}});
+  l1.innerHTML=`<div style="font-size:40px;margin-bottom:6px">🐣</div>
+    <div style="font-weight:900;font-size:19px;color:#1d4ed8;margin-bottom:2px">Nivel 1</div>
+    <div style="font-weight:700;font-size:14px;color:#1e40af">3er Grado • 8 años</div>
+    <div style="font-size:12px;color:#3b82f6;margin-top:4px">Vocabulary • There is/are • Numbers • Prepositions</div>
+    <div style="margin-top:10px;background:#1d4ed8;color:#fff;border-radius:99px;padding:4px 16px;font-size:12px;font-weight:700;display:inline-block">Kid's Box Unit 2</div>`;
+  l1.addEventListener("click",()=>setState({level:1,screen:"levelSelect"}));
+  card.appendChild(l1);
+
+  // Level 2
+  const l2=btn({className:"level-btn",style:{background:"linear-gradient(135deg,#ede9fe,#ddd6fe)",border:"2px solid #c4b5fd"}});
+  l2.innerHTML=`<div style="font-size:40px;margin-bottom:6px">🦁</div>
+    <div style="font-weight:900;font-size:19px;color:#6d28d9;margin-bottom:2px">Nivel 2</div>
+    <div style="font-weight:700;font-size:14px;color:#7c3aed">6to Grado • 11-12 años</div>
+    <div style="font-size:12px;color:#8b5cf6;margin-top:4px">Irregular Verbs • Inf • Past Simple • Past Participle</div>
+    <div style="margin-top:10px;background:#7c3aed;color:#fff;border-radius:99px;padding:4px 16px;font-size:12px;font-weight:700;display:inline-block">72 verbos irregulares</div>`;
+  l2.addEventListener("click",()=>setState({level:2,screen:"levelSelect"}));
+  card.appendChild(l2);
+
+  sc.appendChild(card); return sc;
+}
+
+function renderLevelSelect(){
+  const lv=S.level, modes=lv===1?L1_MODES:L2_MODES;
+  const col=lv===1?"#0369a1":"#7c3aed";
+  const sc=div({className:`screen screen-l${lv}`});
+  const card=div({className:"card"});
+
+  const hdr=div({style:{textAlign:"center",marginBottom:"20px"}});
+  hdr.appendChild(div({style:{fontSize:"38px"}},[ lv===1?"🐣":"🦁" ]));
+  hdr.appendChild(p({style:{fontWeight:"900",fontSize:"22px",color:col,margin:"4px 0"}},[ lv===1?"Nivel 1 — 3er Grado":"Nivel 2 — 6to Grado" ]));
+  hdr.appendChild(p({style:{color:"#888",fontSize:"13px"}},["Elige el modo de juego:"]));
+  card.appendChild(hdr);
+
+  const list=div({style:{display:"flex",flexDirection:"column",gap:"10px"}});
+  modes.forEach(m=>{
+    const b=btn({className:"mode-btn",style:{background:col+"11",border:`2px solid ${col}22`}});
+    b.innerHTML=`<span style="font-size:22px">${m.emoji}</span>
+      <span style="flex:1;margin-left:10px;text-align:left">
+        <strong style="color:${col}">${m.label}</strong><br>
+        <span style="font-size:12px;color:#888">${m.desc}</span>
+      </span>
+      ${m.id==="roulette"?`<span style="font-size:11px;background:${col};color:#fff;border-radius:99px;padding:3px 8px;font-weight:800;margin-right:6px">⚡</span>`:""}
+      <span style="color:${col};font-weight:700">›</span>`;
+    b.addEventListener("click",()=>{
+      S.roulAngle=0;
+      const q=genQuestion(lv,m.id);
+      setState({mode:m,score:0,round:0,combo:0,q,screen:"game",phase:"spin",selected:null,revealed:false,inputVal:""});
+    });
+    list.appendChild(b);
+  });
+  card.appendChild(list);
+
+  const back=btn({className:"back-btn",style:{marginTop:"16px",width:"100%"}},["← Volver al inicio"]);
+  back.addEventListener("click",()=>setState({screen:"home"}));
+  card.appendChild(back);
+  sc.appendChild(card); return sc;
+}
+
+function renderGame(){
+  const lv=S.level, col=lv===1?"#0369a1":"#7c3aed";
+  const sc=div({className:`screen screen-l${lv}`});
+  const card=div({className:"card"});
+
+  // Top bar
+  const top=div({style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}});
+  const bk=btn({className:"back-btn"},["← Modos"]);
+  bk.addEventListener("click",()=>setState({screen:"levelSelect"}));
+  top.appendChild(bk);
+  const mid=div({style:{textAlign:"center"}});
+  mid.appendChild(p({style:{fontSize:"11px",color:"#888"}},[S.mode.emoji+" "+S.mode.label]));
+  mid.appendChild(p({style:{fontWeight:"800",color:col,fontSize:"14px"}},[`Ronda ${S.round+1}/${S.totalRounds}`]));
+  top.appendChild(mid);
+  const sc2=div({style:{textAlign:"right"}});
+  sc2.appendChild(p({style:{fontSize:"11px",color:"#888"}},["Puntos"]));
+  sc2.appendChild(p({style:{fontWeight:"900",fontSize:"20px",color:"#f59e0b",lineHeight:"1"}},[String(S.score)]));
+  top.appendChild(sc2);
+  card.appendChild(top);
+
+  // Progress
+  const pb=div({className:"progress-bar"});
+  const pf=div({className:"progress-fill",style:{background:`linear-gradient(90deg,${col},${lv===1?"#38bdf8":"#a78bfa"})`,width:`${(S.round/S.totalRounds)*100}%`}});
+  pb.appendChild(pf); card.appendChild(pb);
+
+  // Combo
+  if(S.combo>=3){
+    card.appendChild(div({className:"combo-bar"},[`🔥 Combo x${S.combo} — ¡Imparable!`]));
+  }
+
+  // Question
+  const q=S.q;
+  let qEl=null;
+  if(q){
+    if(q.type==="vocab")    qEl=renderVocab(q);
+    if(q.type==="numbers")  qEl=renderNumbers(q);
+    if(q.type==="thereis")  qEl=renderThereis(q);
+    if(q.type==="preps")    qEl=renderPreps(q);
+    if(q.type==="howmany")  qEl=renderHowmany(q);
+    if(q.type==="roulette1")qEl=renderRouletteL1(q);
+    if(q.type==="mcq")      qEl=renderMCQ(q);
+    if(q.type==="fill")     qEl=renderFill(q);
+    if(q.type==="match")    qEl=renderMatch(q);
+    if(q.type==="order")    qEl=renderOrder(q);
+    if(q.type==="roulette2")qEl=renderRouletteL2(q);
+  }
+  if(qEl) card.appendChild(qEl);
+  sc.appendChild(card); return sc;
+}
+
+function renderResult(){
+  const lv=S.level, col=lv===1?"#0369a1":"#7c3aed";
+  const modes=lv===1?L1_MODES:L2_MODES;
+  const max=S.totalRounds*(S.mode?.id==="roulette"?20:15);
+  const pct=S.score/max;
+  const st=pct>=.85?3:pct>=.6?2:1;
+  const msgs=["¡Sigue practicando! 💪","¡Muy bien! 😊","¡Eres un crack! 🏆"];
+
+  const sc=div({className:`screen screen-l${lv}`});
+  const card=div({className:"card",style:{textAlign:"center"}});
+
+  card.appendChild(div({style:{fontSize:"58px",marginBottom:"8px"},className:"anim-pop"},[ ["⭐","⭐⭐","⭐⭐⭐"][st-1] ]));
+  card.appendChild(p({style:{fontWeight:"900",fontSize:"24px",color:col,marginBottom:"4px"}},["¡Fin del juego!"]));
+  card.appendChild(p({style:{fontSize:"17px",color:"#555",marginBottom:"14px"}},[msgs[st-1]]));
+
+  const sb=div({style:{background:`linear-gradient(135deg,${col},${lv===1?"#38bdf8":"#a78bfa"})`,borderRadius:"20px",padding:"16px 40px",marginBottom:"18px",display:"inline-block"}});
+  sb.appendChild(p({style:{color:"#ffffffcc",fontSize:"13px",margin:"0"}},["Puntuación total"]));
+  sb.appendChild(p({style:{color:"#fff",fontWeight:"900",fontSize:"44px",margin:"0",lineHeight:"1"}},[String(S.score)]));
+  card.appendChild(sb);
+
+  card.appendChild(p({style:{fontWeight:"700",color:col,marginBottom:"10px",fontSize:"14px"}},["¡Jugar de nuevo!"]));
+
+  const list=div({style:{display:"flex",flexDirection:"column",gap:"8px",marginBottom:"12px"}});
+  modes.forEach(m=>{
+    const b=btn({className:"mode-btn",style:{background:col+"11",border:`2px solid ${col}22`}});
+    b.innerHTML=`<span>${m.emoji}</span><span style="flex:1;margin-left:10px;color:${col};font-weight:700;text-align:left">${m.label}</span><span style="color:${col}">›</span>`;
+    b.addEventListener("click",()=>{
+      S.roulAngle=0;
+      const q=genQuestion(lv,m.id);
+      setState({mode:m,score:0,round:0,combo:0,q,screen:"game"});
+    });
+    list.appendChild(b);
+  });
+  card.appendChild(list);
+
+  const home=btn({className:"back-btn",style:{width:"100%"}},["🏠 Inicio"]);
+  home.addEventListener("click",()=>setState({screen:"home"}));
+  card.appendChild(home);
+  sc.appendChild(card); return sc;
+}
+
+// ═══════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════
+function render(){
+  const app=document.getElementById("app");
+  app.innerHTML="";
+  let sc=null;
+  if(S.screen==="home")        sc=renderHome();
+  if(S.screen==="levelSelect") sc=renderLevelSelect();
+  if(S.screen==="game")        sc=renderGame();
+  if(S.screen==="result")      sc=renderResult();
+  if(sc) app.appendChild(sc);
+}
+
+// ═══════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
